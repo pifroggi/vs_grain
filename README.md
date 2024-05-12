@@ -1,26 +1,3 @@
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 # Grain Overlay and Generate functions for Vapoursynth
 
 ### Requirements
@@ -52,6 +29,8 @@ __*blur_strength*__
 Produces smoother grain. This is not really a blur, but it has a similar effect.  
 Originally called "sigma" in fgrain.
 
+__*opacity*__  
+Opacity of grain.
 
 ## Overlay Grain Clip
 Set your own grain clip and overlay it on top of your base clip. This automatically loops the grain clip, crops it if it is too large and repeats it if it is too small.
@@ -70,12 +49,11 @@ Must be in YUV format.
 __*size*__  
 Multiplicator to resize grain clip. Will automatically crop if too large or repeat if too small.
 
-__*deviation*__  
-Standard deviation of size, which dictates how much variation there is in the size of the grain particles.  
-Originally called "grain_radius_std" in fgrain.
-
 __*blur_strength*__  
 Produces smoother grain by blurring the grain clip.
+
+__*opacity*__  
+Opacity of grain.
 
 __*blend_mode*__  
 Method used to blend the grain clip with the base clip. Blend function is from [havsfunc](https://github.com/HomeOfVapourSynthEvolution/havsfunc) by HolyWu.  
@@ -87,7 +65,6 @@ Available blend modes:
 * vividlight
 * grainmerge
 * grainextract
-
 * average
 * normal
 
