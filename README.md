@@ -26,11 +26,11 @@ Standard deviation of size, which dictates how much variation there is in the si
 Originally called "grain_radius_std" in fgrain.
 
 __*blur_strength*__  
-Produces smoother grain. This is not really a blur, but it has a similar effect.  
+Generates smoother grain. This is not really a blur, but it has a similar effect.  
 Originally called "sigma" in fgrain.
 
 __*opacity*__  
-Opacity of grain.
+Opacity of generated grain.
 
 ## Overlay Grain Clip
 Set your own grain clip and overlay it on top of your base clip. This automatically loops the grain clip, crops it if it is too large and repeats it if it is too small.
@@ -53,7 +53,7 @@ __*blur_strength*__
 Produces smoother grain by blurring the grain clip.
 
 __*opacity*__  
-Opacity of grain.
+Opacity of grain clip.
 
 __*blend_mode*__  
 Method used to blend the grain clip with the base clip. Blend function is from [havsfunc](https://github.com/HomeOfVapourSynthEvolution/havsfunc) by HolyWu.  
