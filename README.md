@@ -3,8 +3,14 @@
 ### Requirements
 * [vs-fgrain-cuda](https://github.com/AmusementClub/vs-fgrain-cuda) (optional, not needed for overlay)
 
+### Setup
+Put the `vs_grain.py` file into your vapoursynth scripts folder.  
+Or install via pip: `pip install git+https://github.com/pifroggi/vs_grain.git`
+
+<br />
+
 ## Generate Realistic Film Grain
-Simple helper function for [fgrain](https://github.com/AmusementClub/vs-fgrain-cuda) that animates the grain, adds opacity option, and support for YUV. Requires an Nvidia GPU.
+Simple helper function for the very realistic grain generator [fgrain](https://github.com/AmusementClub/vs-fgrain-cuda) that animates the grain, adds opacity option, and support for YUV. Requires an Nvidia GPU.
 
     import vs_grain
     clip = vs_grain.fgrain(clip, iterations=800, size=0.5, deviation=0.0, blur_strength=0.9, opacity=0.1)
@@ -67,6 +73,8 @@ Available blend modes:
 * grainextract
 * average
 * normal
+
+<br />
 
 ## Tips & Troubleshooting
 If fgrain is too slow for you, try generating a short grain clip on gray background and then use vs_grain.overlay with blend_mode="grainmerge" to apply it to the whole clip.
