@@ -1,7 +1,8 @@
 # Grain Overlay and Generate functions for Vapoursynth
 
 ### Requirements
-* [vs-fgrain-cuda](https://github.com/AmusementClub/vs-fgrain-cuda) (optional, not needed for overlay)
+* [fgrain](https://github.com/AmusementClub/vs-fgrain-cuda) (optional, not needed for overlay)
+* [akarin](https://github.com/Jaded-Encoding-Thaumaturgy/akarin-vapoursynth-plugin) (optional, not needed for overlay)
 
 ### Setup
 Put the `vs_grain.py` file into your vapoursynth scripts folder.  
@@ -17,7 +18,7 @@ Simple helper function for the very realistic grain generator [fgrain](https://g
 
 __*`clip`*__  
 Clip to apply grain to.  
-Must be in YUV444PS or GRAYS format.
+Must be in YUV or GRAY format.
 
 __*`iterations`*__  
 Higher values look more realistic. Lower values speed up the processing time but result in grain that looks less natural.  
