@@ -2,7 +2,6 @@ import vapoursynth as vs
 
 core = vs.core
 
-
 def _opacitymask(luma, opacity_dark, opacity_mid, opacity_bright, peak=1.0):
     thresh1, thresh2, thresh3, thresh4 = 0.176, 0.333, 0.549, 0.784
     span1 = (thresh2 - thresh1) * peak
@@ -10,7 +9,6 @@ def _opacitymask(luma, opacity_dark, opacity_mid, opacity_bright, peak=1.0):
     ramp1 = f"x {thresh1 * peak} - {span1} / 0 max 1 min {opacity_mid * peak}   {opacity_dark * peak} - * {opacity_dark * peak} +"
     ramp2 = f"x {thresh3 * peak} - {span2} / 0 max 1 min {opacity_bright * peak} {opacity_mid * peak} - * {opacity_mid * peak}  +"
     return core.std.Expr(luma, expr=f"x {thresh2 * peak} < {ramp1} x {thresh3 * peak} < {opacity_mid * peak} {ramp2} ? ?")
-
 
 def _maskedmerge(clipa, clipb, mask, planes):
     # makes maskedmerge work on half float formats
@@ -29,7 +27,8 @@ def _maskedmerge(clipa, clipb, mask, planes):
     return core.std.MaskedMerge(clipa, clipb, mask, planes=planes)
 
 
-def fgrain(clip, iterations=800, size=0.5, deviation=0.0, blur=0.9, opacity=0.1):
+def fgrain(clip, iterations=800, size=0.3, deviation=0.0, blur=0.8, opacity=0.5):
+    
     # checks
     if clip.format.color_family not in (vs.YUV, vs.GRAY):
         raise ValueError("vs_grain.fgrain: Clip must be in YUV or GRAY format.")
