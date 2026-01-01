@@ -3,21 +3,12 @@ requires = ["setuptools", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "vs_align"
-version = "1.0.0"
-description = "Video Alignment and Sync functions for Vapoursynth."
+name = "vs_grain"
+version = "2.0.0"
+description = "Vapoursynth wrapper for fgrain plugin and helper for overlaying external grain clips."
 authors = [{ name = "pifroggi" }]
 license = { text = "MIT" }
 
-dependencies = [
-	"torch",
-    "pyiqa",
-    "numpy"
-]
-
-[tool.setuptools.package-data]
-vs_align = ["rife/*.pkl"]
-
 [project.urls]
-Home-page = "https://github.com/pifroggi/vs_align"
-Repository = "https://github.com/pifroggi/vs_align"
+Home-page = "https://github.com/pifroggi/vs_grain"
+Repository = "https://github.com/pifroggi/vs_grain"
