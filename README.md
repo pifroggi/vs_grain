@@ -76,8 +76,8 @@ Available blend modes:
 * `grainextract` Inverse of grainmerge. Removes grain added via grainmerge.
 * `overlay` Grain has strongest impact in midtones and fades toward shadows/highlights.
 * `hardlight` Opposite of overlay, meaning grain gets stronger toward shadows/highlights.
-* `softlight` Similar to overlay, but dark grains get weaker in the shadows and bright grains get weaker in the highlights.
-* `vividlight` Dark grains get stronger in the shadows and bright grains get stronger in the highlights. 
+* `softlight` Like to overlay, but dark grains get weaker in shadows and bright grains get weaker in highlights.
+* `vividlight` Dark grains get stronger in shadows and bright grains get stronger in highlights. 
 
 <br />
 
