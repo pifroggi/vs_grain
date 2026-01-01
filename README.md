@@ -1,4 +1,4 @@
-# Grain Overlay and Generate functions for Vapoursynth
+# Grain Overlay and Generate functions for VapourSynth
 
 ### Requirements
 * [akarin](https://github.com/Jaded-Encoding-Thaumaturgy/akarin-vapoursynth-plugin)
@@ -29,13 +29,13 @@ __*`size`*__
 Average size of grain particles.  
 
 __*`deviation`*__  
-Deviation of size, or how much variation there is in the size of grain particles.  
+Deviation of size, or how much variation there is in the size of grain particles. High values can cause bad outputs, use with caution.  
 
 __*`blur`*__  
 Generates smoother grain.
 
 __*`opacity`*__  
-Opacity of generated grain. Can be a list `[0.1, 0.3, 0.6]` for shadows/midtones/highlights, or a single value for everything.
+Opacity of generated grain. Can be a list `[0.5, 1.0, 0.5]` for shadows/midtones/highlights, or a single value for everything.
 
 <br />
 
@@ -62,7 +62,7 @@ __*`blur`*__
 Smoothes the grain by blurring the grain clip.
 
 __*`opacity`*__  
-Opacity of grain clip. Can be a list `[0.1, 0.3, 0.6]` for shadows/midtones/highlights, or a single value for everything.
+Opacity of grain clip. Can be a list `[0.5, 1.0, 0.5]` for shadows/midtones/highlights, or a single value for everything.
 
 __*`planes`*__  
 Which planes should be effected by the grain clip. Any unmentioned planes will simply be copied.  
@@ -78,6 +78,8 @@ Available blend modes:
 * `hardlight` Opposite of overlay, meaning grain gets stronger toward shadows/highlights.
 * `softlight` Like to overlay, but dark grains get weaker in shadows and bright grains get weaker in highlights.
 * `vividlight` Dark grains get stronger in shadows and bright grains get stronger in highlights. 
+
+<br />
 
 <br />
 
