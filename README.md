@@ -52,7 +52,7 @@ Clip to apply grain to.
 Must be in YUV or GRAY format.
 
 __*`grain`*__  
-Grain clip to overlay.  
+Grain clip to overlay. This is expected to be grain on a 50% gray background.  
 Must be the same format as the base clip.
 
 __*`size`*__  
