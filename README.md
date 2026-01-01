@@ -15,7 +15,7 @@ Helper function for the very realistic grain generator [fgrain](https://github.c
 
 ```python
 import vs_grain
-clip = vs_grain.fgrain(clip, iterations=800, size=0.5, deviation=0.0, blur=0.9, opacity=0.1)
+clip = vs_grain.fgrain(clip, iterations=800, size=0.3, deviation=0.0, blur=0.8, opacity=0.5)
 ```
 
 __*`clip`*__  
