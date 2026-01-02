@@ -1,3 +1,7 @@
+
+# Script by pifroggi https://github.com/pifroggi/vs_grain
+# or tepete and pifroggi on Discord
+
 import vapoursynth as vs
 
 core = vs.core
@@ -30,11 +34,25 @@ def _maskedmerge(clipa, clipb, mask, planes):
 def fgrain(clip, iterations=800, size=0.3, deviation=0.0, blur=0.8, opacity=0.5):
     
     # checks
+    if not isinstance(clip, vs.VideoNode):
+        raise TypeError("vs_grain.fgrain: Clip must be a vapoursynth clip.")
+    if clip.format.id  == vs.PresetVideoFormat.NONE or clip.width  == 0 or clip.height  == 0:
+        raise TypeError("vs_grain.fgrain: Clip must have constant format and dimensions.")
     if clip.format.color_family not in (vs.YUV, vs.GRAY):
         raise ValueError("vs_grain.fgrain: Clip must be in YUV or GRAY format.")
+    if not isinstance(iterations, int) or isinstance(iterations, bool):
+        raise TypeError("vs_grain.fgrain: Number of iterations must be an integer.")
+    if iterations < 1:
+        raise ValueError("vs_grain.fgrain: Number of iterations must be at least 1.")
+    if size <= 0:
+        raise ValueError("vs_grain.fgrain: Grain size must be larger than 0.")
+    if deviation < 0:
+        raise ValueError("vs_grain.fgrain: Grain deviation can not be negative.")
+    if blur < 0:
+        raise ValueError("vs_grain.fgrain: Blur strength can not be negative.")
     if isinstance(opacity, (list, tuple)):
         if len(opacity) != 3:
-            raise ValueError("vs_grain.fgrain: Opacity must be a single value, or a list for [dark, mid, bright] regions.")
+            raise ValueError("vs_grain.fgrain: Opacity must be a single value, or a list for [shadows, midtones, highlights].")
         opacity_dark,  opacity_mid,  opacity_bright = map(float, opacity)
     else:
         opacity_dark = opacity_mid = opacity_bright = float(opacity)
@@ -77,19 +95,29 @@ def fgrain(clip, iterations=800, size=0.3, deviation=0.0, blur=0.8, opacity=0.5)
 def overlay(clip, grain, blend_mode="overlay", size=1.0, blur=0, opacity=1.0, planes=None):
 
     # checks
-    if clip.format.color_family not in (vs.YUV, vs.GRAY):
+    if not isinstance(clip, vs.VideoNode):
+        raise TypeError("vs_grain.overlay: Clip must be a vapoursynth clip.")
+    if not isinstance(grain, vs.VideoNode):
+        raise TypeError("vs_grain.overlay: Grain must be a vapoursynth clip.")
+    if clip.format.id  == vs.PresetVideoFormat.NONE or clip.width  == 0 or clip.height  == 0:
+        raise TypeError("vs_grain.overlay: Clip must have constant format and dimensions.")
+    if grain.format.id == vs.PresetVideoFormat.NONE or grain.width == 0 or grain.height == 0:
+        raise TypeError("vs_grain.overlay: Grain must have constant format and dimensions.")
+    if clip.format.color_family  not in (vs.YUV, vs.GRAY):
         raise ValueError("vs_grain.overlay: Clip must be in YUV or GRAY format.")
     if grain.format.color_family not in (vs.YUV, vs.GRAY):
         raise ValueError("vs_grain.overlay: Grain must be in YUV or GRAY format.")
     if clip.format.id != grain.format.id:
-        raise ValueError("vs_grain.overlay: Clip and grain must have the same format.")
+        raise ValueError("vs_grain.overlay: Base clip and grain clip must have the same format.")
     if not (0.1 <= size <= 10.0):
         raise ValueError("vs_grain.overlay: Size factor must be in the 0.1-10.0 range with 1.0 meaning no resizing.")
+    if not isinstance(blur, int) or isinstance(blur, bool):
+        raise TypeError("vs_grain.overlay: Blur strength must be an integer.")
     if blur < 0:
         raise ValueError("vs_grain.overlay: Blur strength can not be negative.")
     if isinstance(opacity, (list, tuple)):
         if len(opacity) != 3:
-            raise ValueError("vs_grain.overlay: Opacity must be a single value, or a list for [dark, mid, bright] regions.")
+            raise ValueError("vs_grain.overlay: Opacity must be a single value, or a list for [shadows, midtones, highlights].")
         opacity_dark,  opacity_mid,  opacity_bright = map(float, opacity)
         uniform_opacity = False
     else:
