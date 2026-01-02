@@ -55,6 +55,18 @@ __*`grain`*__
 Grain clip to overlay. This is expected to be grain on a 50% gray background.  
 Must be the same format as the base clip.
 
+__*`blend_mode`*__  
+Method used to blend the grain clip with the base clip. Available blend modes:
+* `grainshow` Shows the grain without blending.
+* `grainmerge` Grain is applied everywhere with the same impact.
+* `grainextract` Inverse of grainmerge. Removes grain added via grainmerge.
+* `overlay` Grain has strongest impact in midtones and fades toward shadows/highlights.
+* `hardlight` Opposite of overlay, meaning grain gets stronger toward shadows/highlights.
+* `softlight` Similar to overlay, but dark grains get weaker in shadows and bright grains get weaker in highlights.
+* `vividlight` Dark grains get stronger in shadows and bright grains get stronger in highlights. 
+
+<br />
+
 __*`size`*__  
 Multiplicator to resize grain clip. Will automatically crop if too large or repeat if too small.
 
@@ -67,17 +79,6 @@ Opacity of grain clip. Can be a list `[0.5, 1.0, 0.5]` for shadows/midtones/high
 __*`planes`*__  
 Which planes should be effected by the grain clip. Any unmentioned planes will simply be copied.  
 If nothing is set, the grain will be applied to all planes.
-
-__*`blend_mode`*__  
-Method used to blend the grain clip with the base clip.  
-Available blend modes:
-* `grainshow` Shows the grain without blending.
-* `grainmerge` Grain is applied everywhere with the same impact.
-* `grainextract` Inverse of grainmerge. Removes grain added via grainmerge.
-* `overlay` Grain has strongest impact in midtones and fades toward shadows/highlights.
-* `hardlight` Opposite of overlay, meaning grain gets stronger toward shadows/highlights.
-* `softlight` Similar to overlay, but dark grains get weaker in shadows and bright grains get weaker in highlights.
-* `vividlight` Dark grains get stronger in shadows and bright grains get stronger in highlights. 
 
 <br />
 
