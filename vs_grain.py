@@ -137,8 +137,12 @@ def overlay(clip, grain, blend_mode="overlay", size=1.0, blur=0, opacity=1.0, pl
     if opacity_dark == opacity_mid == opacity_bright == 0.0:
         return clip
     
+    grain_format = grain.format
     sub_w = 1 << clip.format.subsampling_w
     sub_h = 1 << clip.format.subsampling_h
+    vszip = hasattr(core, "vszip")
+    box_blur = core.vszip.BoxBlur if vszip else core.std.BoxBlur
+
     
     # set peaks
     int_format = clip.format.sample_type == vs.INTEGER
@@ -173,15 +177,18 @@ def overlay(clip, grain, blend_mode="overlay", size=1.0, blur=0, opacity=1.0, pl
     
     # blur grain
     if blur != 0:
-        grain = core.resize.Bilinear(grain, width=grain.width * 4, height=grain.height * 4)
+        fp32  = (blur > 1 and not vszip and grain_format.sample_type == vs.FLOAT and grain_format.bits_per_sample == 16)  # convert to fp32 if grain is fp16 and vszip not present
+        grain = core.resize.Bilinear(grain, width=grain.width * 4, height=grain.height * 4, format=grain_format.replace(bits_per_sample=32) if fp32 else None)
         if blur > 1:
-            grain = core.std.BoxBlur(grain, hradius=blur - 1, vradius=blur - 1, hpasses=2, vpasses=2)
-        grain = core.resize.Bilinear(grain, width=grain.width // 4, height=grain.height // 4)
+            grain = box_blur(grain, hradius=blur - 1, vradius=blur - 1, hpasses=2, vpasses=2, planes=planes)
+        grain = core.resize.Bilinear(grain, width=grain.width // 4, height=grain.height // 4, format=grain_format if fp32 else None)
     
-    # loop grain to match clip
-    grain = core.std.Loop(grain, times=-(-clip.num_frames // grain.num_frames))[:clip.num_frames]
+    # loop or trim grain to match clip
+    if grain.num_frames < clip.num_frames:
+        grain = core.std.Loop(grain, times=-(-clip.num_frames // grain.num_frames))
+    grain = grain[:clip.num_frames]
     
-    # blend modes exprs based on "havsfunc" https://github.com/HomeOfVapourSynthEvolution/havsfunc
+    # blend modes exprs based on havsfunc https://github.com/HomeOfVapourSynthEvolution/havsfunc
     blend_exprs = {
         "grainshow":      "{Y}",
         "grainmerge":     "{X} {Y} + {neutral} -",
