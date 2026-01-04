@@ -44,7 +44,7 @@ Bring your own grain clip and overlay it on top of your base clip. This automati
 
 ```python
 import vs_grain
-clip = vs_grain.overlay(clip, grain, blend_mode="overlay", size=1.0, blur=0, opacity=1.0, planes=None)
+clip = vs_grain.overlay(clip, grain, blend_mode="overlay", size=1.0, blur=0, opacity=1.0, planes=[0, 1, 2])
 ```
 
 __*`clip`*__  
