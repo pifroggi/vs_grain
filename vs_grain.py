@@ -32,6 +32,17 @@ def _maskedmerge(clipa, clipb, mask, planes):
 
 
 def fgrain(clip, iterations=800, size=0.3, deviation=0.0, blur=0.8, opacity=0.5):
+    """Realistic grain generator. Grain is only applied to luma. Requires an Nvidia GPU.
+
+    Args:
+        clip: Clip to apply grain to. Must be in YUV or GRAY format.
+        iterations: Higher values look more realistic. Lower values are faster but result in grain that looks less natural.
+        size: Average size of grain particles.
+        deviation: Deviation of size, or how much variation there is in the size of grain particles. High values can cause bad outputs, use with caution.
+        blur: Blur strength to generate smoother grain.
+        opacity: Opacity of grain. Can be a list `[0.5, 1.0, 0.5]` for shadows/midtones/highlights, or a single value for everything.
+    """
+
     
     # checks
     if not isinstance(clip, vs.VideoNode):
@@ -93,6 +104,25 @@ def fgrain(clip, iterations=800, size=0.3, deviation=0.0, blur=0.8, opacity=0.5)
 
 
 def overlay(clip, grain, blend_mode="overlay", size=1.0, blur=0, opacity=1.0, planes=None):
+    """Overlays a grain clip on top of a base clip. Automatically loops the grain clip, crops if too large or stacks if too small.
+
+    Args:
+        clip: Clip to apply grain to. Must be in YUV or GRAY format.
+        grain: Grain clip to overlay. This is expected to be grain on a 50% gray background. Must be in YUV or GRAY format.
+        blend_mode: Method used to blend the grain clip with the base clip.
+            * `grainshow` Shows the grain without blending.  
+            * `grainmerge` Grain is applied everywhere with the same impact.  
+            * `grainextract` Inverse of grainmerge. Removes grain added via grainmerge.  
+            * `overlay` Grain has strongest impact in midtones and fades toward shadows/highlights.  
+            * `hardlight` Opposite of overlay, meaning grain gets stronger toward shadows/highlights.  
+            * `softlight` Similar to overlay, but dark grains get weaker in shadows and bright grains get weaker in highlights.  
+            * `vividlight` Dark grains get stronger in shadows and bright grains get stronger in highlights.
+        size: Multiplicator to resize grain clip.
+        blur: Smoothes the grain by blurring the grain clip.
+        opacity: Opacity of grain clip. Can be a list `[0.5, 1.0, 0.5]` for shadows/midtones/highlights, or a single value for everything.
+        planes: Which planes should be effected by the grain clip. Any unmentioned planes will simply be copied.
+            If nothing is set, the grain will be applied to all planes.
+    """
 
     # checks
     if not isinstance(clip, vs.VideoNode):
