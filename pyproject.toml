@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "vs_grain"
-version = "2.0.0"
+version = "2.0.1"
 description = "Vapoursynth wrapper for fgrain plugin and helper for overlaying external grain clips."
 authors = [{ name = "pifroggi" }]
 license = { text = "MIT" }
@@ -12,3 +12,4 @@ license = { text = "MIT" }
 [project.urls]
 Home-page = "https://github.com/pifroggi/vs_grain"
 Repository = "https://github.com/pifroggi/vs_grain"
+
