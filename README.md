@@ -37,10 +37,13 @@ Generates smoother grain.
 __*`opacity`*__  
 Opacity of generated grain. Can be a list `[0.5, 1.0, 0.5]` for shadows/midtones/highlights, or a single value for everything.
 
+> [!TIP]
+> If fgrain is too slow for you, try generating a short grain clip on neutral mid-gray background and then use the overlay function to apply it to the whole clip.
+
 <br />
 
 ## Overlay Grain Clip
-Bring your own grain clip and overlay it on top of your base clip. This automatically loops the grain clip, crops it if it is too large or repeats it if it is too small.
+Bring your own grain clip and overlay it on top of your base clip. This automatically loops the grain clip, crops if too large or stacks if too small.
 
 ```python
 import vs_grain
@@ -52,7 +55,7 @@ Clip to apply grain to.
 Must be in YUV or GRAY format.
 
 __*`grain`*__  
-Grain clip to overlay. This is expected to be grain on a 50% gray background.  
+Grain clip to overlay. This is expected to be grain on a neutral mid-gray background.  
 Must be the same format as the base clip.
 
 __*`blend_mode`*__  
@@ -79,10 +82,3 @@ Opacity of grain clip. Can be a list `[0.5, 1.0, 0.5]` for shadows/midtones/high
 __*`planes`*__  
 Which planes should be effected by the grain clip. Any unmentioned planes will simply be copied.  
 If nothing is set, the grain will be applied to all planes.
-
-<br />
-
-<br />
-
-> [!TIP]
-> If fgrain is too slow for you, try generating a short grain clip on 50% gray background and then use the overlay function to apply it to the whole clip.
