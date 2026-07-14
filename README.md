@@ -1,21 +1,22 @@
 # Grain Overlay and Generate functions for VapourSynth
 
-### Requirements
-* [akarin](https://github.com/Jaded-Encoding-Thaumaturgy/akarin-vapoursynth-plugin)
-* [fgrain](https://github.com/AmusementClub/vs-fgrain-cuda) *(optional, only for fgrain function)*
+<br />
 
-### Setup
-Put the `vs_grain.py` file into your vapoursynth scripts folder.  
-Or install via pip: `pip install -U git+https://github.com/pifroggi/vs_grain.git`
+## Installation
+
+```
+pip install -U vs_grain
+```  
+For older vapoursynth versions below R74, follow the manual installation steps [here](https://github.com/pifroggi/vs_grain/wiki/Manual-Installation).
 
 <br />
 
 ## Generate Realistic Film Grain
-Helper function for the very realistic grain generator [fgrain](https://github.com/AmusementClub/vs-fgrain-cuda) that animates the grain, adds opacity options, and support for YUV. Grain is only applied to luma. Requires an Nvidia GPU.
+Helper function for the very realistic grain generator [fgrain](https://github.com/dnjulek/vapoursynth-zipcu) that animates the grain, adds opacity options, and support for YUV. Grain is only applied to luma. Requires an Nvidia GPU.
 
 ```python
 import vs_grain
-clip = vs_grain.fgrain(clip, iterations=800, size=0.3, deviation=0.0, blur=0.8, opacity=0.5)
+clip = vs_grain.fgrain(clip, iterations=800, size=0.3, deviation=0.0, blur=0.8, opacity=[0.5, 0.5, 0.5], num_streams=1)
 ```
 
 __*`clip`*__  
@@ -37,6 +38,9 @@ Generates smoother grain.
 __*`opacity`*__  
 Opacity of generated grain. Can be a list `[0.5, 1.0, 0.5]` for shadows/midtones/highlights, or a single value for everything.
 
+__*`num_streams`*__  
+Number of parallel GPU streams. For high end GPUs higher can be a bit faster, but requires more VRAM.
+
 > [!TIP]
 > If fgrain is too slow for you, try generating a short grain clip on neutral mid-gray background and then use the overlay function to apply it to the whole clip.
 
@@ -47,7 +51,7 @@ Bring your own grain clip and overlay it on top of your base clip. This automati
 
 ```python
 import vs_grain
-clip = vs_grain.overlay(clip, grain, blend_mode="overlay", size=1.0, blur=0, opacity=1.0, planes=[0, 1, 2])
+clip = vs_grain.overlay(clip, grain, blend_mode="overlay", size=1.0, blur=0.0, opacity=[1.0, 1.0, 1.0], planes=[0, 1, 2])
 ```
 
 __*`clip`*__  
@@ -80,5 +84,5 @@ __*`opacity`*__
 Opacity of grain clip. Can be a list `[0.5, 1.0, 0.5]` for shadows/midtones/highlights, or a single value for everything.
 
 __*`planes`*__  
-Which planes should be effected by the grain clip. Any unmentioned planes will simply be copied.  
+Which planes should be affected by the grain clip. Any unmentioned planes will simply be copied.  
 If nothing is set, the grain will be applied to all planes.
