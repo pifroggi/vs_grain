@@ -3,22 +3,23 @@
 # or tepete and pifroggi on Discord
 
 import vapoursynth as vs
+from math import ceil, exp
 
 core = vs.core
 
-def _opacitymask(luma, opacity_dark, opacity_mid, opacity_bright, peak=1.0):
+def _opacity_mask(luma, opacity_dark, opacity_mid, opacity_bright, peak=1.0):
     thresh1, thresh2, thresh3, thresh4 = 0.176, 0.333, 0.549, 0.784
     span1 = (thresh2 - thresh1) * peak
     span2 = (thresh4 - thresh3) * peak
     ramp1 = f"x {thresh1 * peak} - {span1} / 0 max 1 min {opacity_mid * peak}   {opacity_dark * peak} - * {opacity_dark * peak} +"
     ramp2 = f"x {thresh3 * peak} - {span2} / 0 max 1 min {opacity_bright * peak} {opacity_mid * peak} - * {opacity_mid * peak}  +"
-    return core.std.Expr(luma, expr=f"x {thresh2 * peak} < {ramp1} x {thresh3 * peak} < {opacity_mid * peak} {ramp2} ? ?")
+    return core.akarin.Expr(luma, expr=f"x {thresh2 * peak} < {ramp1} x {thresh3 * peak} < {opacity_mid * peak} {ramp2} ? ?")
 
-def _maskedmerge(clipa, clipb, mask, planes):
+def _masked_merge(clipa, clipb, mask, planes):
     # makes maskedmerge work on half float formats
     clipa_format = clipa.format
     clipa_planes = clipa_format.num_planes
-    if clipa_format.sample_type == vs.FLOAT and clipa_format.bits_per_sample == 16:
+    if clipa_format.sample_type == vs.FLOAT and clipa_format.bits_per_sample == 16 and vs.__version__.release_major < 78:
         planes_selected = [i in planes for i in range(clipa_planes)]
         if clipa_planes > 1:
             if mask.format.color_family == vs.GRAY and (clipa_format.subsampling_w or clipa_format.subsampling_h):
@@ -30,9 +31,26 @@ def _maskedmerge(clipa, clipb, mask, planes):
         return core.akarin.Expr([clipa, clipb, mask], expr=expr)
     return core.std.MaskedMerge(clipa, clipb, mask, planes=planes)
 
+def _fgrain_blur(clip, sigma=0.8, planes=None):
+    # gauss blur that scales like fgrain's blur
+    fgrain_sigma = sigma * sigma
+    if fgrain_sigma <= 0:
+        return clip
+    
+    radius = max(1, ceil(fgrain_sigma * 3))
+    matrix = [1023.0 * exp(-(x*x) / (2*fgrain_sigma*fgrain_sigma)) for x in range(-radius, radius + 1)]
+    divisor = sum(matrix)
+    if not (clip.format.sample_type == vs.FLOAT and clip.format.bits_per_sample == 16) or vs.__version__.release_major >= 78:  # use std.convolution for everything except 16-bit float
+        return clip.std.Convolution(matrix=matrix, divisor=divisor, planes=planes, mode="hv")
+    
+    hori = " ".join(f"x[{i},0]:c {weight} *" + (" +" if i > -radius else "") for i, weight in zip(range(-radius, radius + 1), matrix)) + f" {divisor} /"
+    vert = " ".join(f"x[0,{i}]:c {weight} *" + (" +" if i > -radius else "") for i, weight in zip(range(-radius, radius + 1), matrix)) + f" {divisor} /"
+    expr = [hori if planes is None or p in planes else "" for p in range(clip.format.num_planes)]
+    return core.akarin.Expr([core.akarin.Expr([clip], expr, boundary=0)], [vert if planes is None or p in planes else "" for p in range(clip.format.num_planes)], boundary=0)
 
-def fgrain(clip, iterations=800, size=0.3, deviation=0.0, blur=0.8, opacity=0.5):
-    """Realistic grain generator. Grain is only applied to luma. Requires an Nvidia GPU.
+
+def fgrain(clip, iterations=800, size=0.3, deviation=0.0, blur=0.8, opacity=0.5, num_streams=1):
+    """Realistic film grain generator. Grain is only applied to luma. Requires an Nvidia GPU.
 
     Args:
         clip: Clip to apply grain to. Must be in YUV or GRAY format.
@@ -41,8 +59,8 @@ def fgrain(clip, iterations=800, size=0.3, deviation=0.0, blur=0.8, opacity=0.5)
         deviation: Deviation of size, or how much variation there is in the size of grain particles. High values can cause bad outputs, use with caution.
         blur: Blur strength to generate smoother grain.
         opacity: Opacity of grain. Can be a list `[0.5, 1.0, 0.5]` for shadows/midtones/highlights, or a single value for everything.
+        num_streams: Number of parallel GPU streams. For high end GPUs higher can be a bit faster, but requires more VRAM.
     """
-
     
     # checks
     if not isinstance(clip, vs.VideoNode):
@@ -61,6 +79,10 @@ def fgrain(clip, iterations=800, size=0.3, deviation=0.0, blur=0.8, opacity=0.5)
         raise ValueError("vs_grain.fgrain: Grain deviation can not be negative.")
     if blur < 0:
         raise ValueError("vs_grain.fgrain: Blur strength can not be negative.")
+    if not isinstance(num_streams, int) or isinstance(num_streams, bool):
+        raise TypeError("vs_grain.fgrain: Number of parallel GPU streams (num_streams) must be an integer.")
+    if num_streams < 1:
+        raise ValueError("vs_grain.fgrain: Number of parallel GPU streams (num_streams) must be at least 1.")
     if isinstance(opacity, (list, tuple)):
         if len(opacity) != 3:
             raise ValueError("vs_grain.fgrain: Opacity must be a single value, or a list for [shadows, midtones, highlights].")
@@ -84,13 +106,13 @@ def fgrain(clip, iterations=800, size=0.3, deviation=0.0, blur=0.8, opacity=0.5)
     
     # generate grain
     luma_grain = core.akarin.PropExpr(luma, lambda: dict(FGRAIN_SEED_OFFSET="N width *"))
-    luma_grain = core.fgrain_cuda.Add(luma_grain, num_iterations=iterations, grain_radius_mean=size, grain_radius_std=deviation, sigma=blur)
+    luma_grain = core.vszipcu.FGrain(luma_grain, num_iterations=iterations, grain_radius_mean=size, grain_radius_std=deviation, sigma=blur, num_streams=num_streams)
     
     # merge grain
     if (opacity_dark == opacity_mid == opacity_bright):
         luma_grain = core.std.Merge(luma, luma_grain, weight=opacity_dark)
     else:
-        mask = _opacitymask(luma, opacity_dark, opacity_mid, opacity_bright, peak=1.0)
+        mask = _opacity_mask(luma, opacity_dark, opacity_mid, opacity_bright, peak=1.0)
         luma_grain = core.std.MaskedMerge(luma, luma_grain, mask)
     
     # convert back
@@ -103,7 +125,7 @@ def fgrain(clip, iterations=800, size=0.3, deviation=0.0, blur=0.8, opacity=0.5)
     return luma_grain
 
 
-def overlay(clip, grain, blend_mode="overlay", size=1.0, blur=0, opacity=1.0, planes=None):
+def overlay(clip, grain, blend_mode="overlay", size=1.0, blur=0.0, opacity=1.0, planes=None):
     """Overlays a grain clip on top of a base clip. Automatically loops the grain clip, crops if too large or stacks if too small.
 
     Args:
@@ -118,9 +140,9 @@ def overlay(clip, grain, blend_mode="overlay", size=1.0, blur=0, opacity=1.0, pl
             * `softlight` Similar to overlay, but dark grains get weaker in shadows and bright grains get weaker in highlights.  
             * `vividlight` Dark grains get stronger in shadows and bright grains get stronger in highlights.
         size: Multiplicator to resize grain clip.
-        blur: Smoothes the grain by blurring the grain clip.
+        blur: Blur strength to smooth the grain by blurring the grain clip.
         opacity: Opacity of grain clip. Can be a list `[0.5, 1.0, 0.5]` for shadows/midtones/highlights, or a single value for everything.
-        planes: Which planes should be effected by the grain clip. Any unmentioned planes will simply be copied.
+        planes: Which planes should be affected by the grain clip. Any unmentioned planes will simply be copied.
             If nothing is set, the grain will be applied to all planes.
     """
 
@@ -140,21 +162,22 @@ def overlay(clip, grain, blend_mode="overlay", size=1.0, blur=0, opacity=1.0, pl
     if clip.format.id != grain.format.id:
         raise ValueError("vs_grain.overlay: Base clip and grain clip must have the same format.")
     if not (0.1 <= size <= 10.0):
-        raise ValueError("vs_grain.overlay: Size factor must be in the 0.1-10.0 range with 1.0 meaning no resizing.")
-    if not isinstance(blur, int) or isinstance(blur, bool):
-        raise TypeError("vs_grain.overlay: Blur strength must be an integer.")
+        raise ValueError("vs_grain.overlay: Size factor must be in the 0.1-10 range with 1.0 meaning no resizing.")
     if blur < 0:
         raise ValueError("vs_grain.overlay: Blur strength can not be negative.")
+    if blur > 2:
+        raise ValueError("vs_grain.overlay: Blur strength can not be larger than 2. Increase size instead.")
+    
     if isinstance(opacity, (list, tuple)):
         if len(opacity) != 3:
             raise ValueError("vs_grain.overlay: Opacity must be a single value, or a list for [shadows, midtones, highlights].")
         opacity_dark,  opacity_mid,  opacity_bright = map(float, opacity)
-        uniform_opacity = False
     else:
         opacity_dark = opacity_mid = opacity_bright = float(opacity)
-        uniform_opacity = True
+    uniform_opacity = opacity_dark == opacity_mid == opacity_bright
     if not all(0.0 <= x <= 1.0 for x in (opacity_dark, opacity_mid, opacity_bright)):
         raise ValueError("vs_grain.overlay: Opacity values must be in the 0-1 range.")
+    
     num_planes = clip.format.num_planes
     if planes is None:
         planes = list(range(num_planes))
@@ -162,26 +185,22 @@ def overlay(clip, grain, blend_mode="overlay", size=1.0, blur=0, opacity=1.0, pl
         planes = [planes]
     if num_planes == 1:
         planes = [0]
+    if not all(isinstance(p, int) and not isinstance(p, bool) for p in planes):
+        raise TypeError("vs_grain.overlay: Plane indices must be integers.")
     if any(p < 0 or p >= num_planes for p in planes):
         raise ValueError("vs_grain.overlay: Invalid plane index specified.")
+    
     if opacity_dark == opacity_mid == opacity_bright == 0.0:
         return clip
     
-    grain_format = grain.format
     sub_w = 1 << clip.format.subsampling_w
     sub_h = 1 << clip.format.subsampling_h
-    vszip = hasattr(core, "vszip")
-    box_blur = core.vszip.BoxBlur if vszip else core.std.BoxBlur
-
     
     # set peaks
     int_format = clip.format.sample_type == vs.INTEGER
-    neutral    = (1 << (clip.format.bits_per_sample - 1)) if int_format else 0.5
-    peak       = ((1 << clip.format.bits_per_sample) - 1) if int_format else 1.0
-    factor     = (1 << clip.format.bits_per_sample)       if int_format else 1.0
-    neutrals   = [neutral] * num_planes
-    peaks      = [peak]    * num_planes
-    factors    = [factor]  * num_planes
+    neutrals   = [( 1 << (clip.format.bits_per_sample  - 1)) if int_format else 0.5] * num_planes
+    peaks      = [((1 <<  clip.format.bits_per_sample) - 1)  if int_format else 1.0] * num_planes
+    factors    = [( 1 <<  clip.format.bits_per_sample)       if int_format else 1.0] * num_planes
     
     # resize grain
     if size != 1.0:
@@ -207,16 +226,13 @@ def overlay(clip, grain, blend_mode="overlay", size=1.0, blur=0, opacity=1.0, pl
     
     # blur grain
     if blur != 0:
-        fp32  = (blur > 1 and not vszip and grain_format.sample_type == vs.FLOAT and grain_format.bits_per_sample == 16)  # convert to fp32 if grain is fp16 and vszip not present
-        grain = core.resize.Bilinear(grain, width=grain.width * 4, height=grain.height * 4, format=grain_format.replace(bits_per_sample=32) if fp32 else None)
-        if blur > 1:
-            grain = box_blur(grain, hradius=blur - 1, vradius=blur - 1, hpasses=2, vpasses=2, planes=planes)
-        grain = core.resize.Bilinear(grain, width=grain.width // 4, height=grain.height // 4, format=grain_format if fp32 else None)
+        grain = _fgrain_blur(grain, sigma=blur, planes=planes)
     
     # loop or trim grain to match clip
     if grain.num_frames < clip.num_frames:
         grain = core.std.Loop(grain, times=-(-clip.num_frames // grain.num_frames))
-    grain = grain[:clip.num_frames]
+    if grain.num_frames > clip.num_frames:
+        grain = grain[:clip.num_frames]
     
     # blend modes exprs based on havsfunc https://github.com/HomeOfVapourSynthEvolution/havsfunc
     blend_exprs = {
@@ -231,7 +247,7 @@ def overlay(clip, grain, blend_mode="overlay", size=1.0, blur=0, opacity=1.0, pl
     try:
         blend_expr = blend_exprs[blend_mode]
     except KeyError:
-        raise KeyError("vs_grain.overlay: Invalid blend mode specified.")
+        raise ValueError("vs_grain.overlay: Invalid blend mode specified.")
 
     # build exprs for each plane
     exprs = [""] * num_planes        # set all planes to "" which means fast plane copy
@@ -264,7 +280,7 @@ def overlay(clip, grain, blend_mode="overlay", size=1.0, blur=0, opacity=1.0, pl
     mask = clip
     if clip.format.color_family == vs.YUV:
         mask = core.std.ShufflePlanes(mask, 0, vs.GRAY)
-    mask = _opacitymask(mask, opacity_dark, opacity_mid, opacity_bright, peak)
+    mask = _opacity_mask(mask, opacity_dark, opacity_mid, opacity_bright, peaks[0])
 
     # merge grain onto clip
-    return _maskedmerge(clip, grain, mask, planes=planes)
+    return _masked_merge(clip, grain, mask, planes=planes)
