@@ -1,15 +1,37 @@
 [build-system]
-requires = ["setuptools", "wheel"]
-build-backend = "setuptools.build_meta"
+requires = ["hatchling>=1.27.0"]
+build-backend = "hatchling.build"
 
 [project]
 name = "vs_grain"
-version = "2.0.1"
-description = "Vapoursynth wrapper for fgrain plugin and helper for overlaying external grain clips."
+version = "2.1.0"
+description = "Vapoursynth functions to generate realistic film grain (via fgrain) and for overlaying external grain clips."
+readme = "README.md"
+requires-python = ">=3.12"
 authors = [{ name = "pifroggi" }]
-license = { text = "MIT" }
+license = "MIT"
+license-files = ["LICENSE"]
+
+keywords = [
+	"vapoursynth",
+	"video",
+	"grain",
+	"overlay",
+	"filtering"
+]
+
+classifiers = [
+	"Programming Language :: Python :: 3",
+	"Topic :: Multimedia :: Video"
+]
+
+dependencies = [
+	"vapoursynth>=74",
+	"vapoursynth-akarin",
+	"vapoursynth-vszipcu"
+]
 
 [project.urls]
-Home-page = "https://github.com/pifroggi/vs_grain"
+Homepage = "https://github.com/pifroggi/vs_grain"
 Repository = "https://github.com/pifroggi/vs_grain"
-
+Issues = "https://github.com/pifroggi/vs_grain/issues"
