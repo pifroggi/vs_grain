@@ -1,4 +1,4 @@
-# Grain Overlay and Generate functions for VapourSynth
+# Generate or Overlay Grain in VapourSynth
 
 <br />
 
