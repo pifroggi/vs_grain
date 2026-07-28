@@ -2,12 +2,18 @@
 
 <br />
 
+<p align="center">
+  <img src="https://raw.githubusercontent.com/pifroggi/vs_grain/refs/heads/main/README_img.png" width="600" />
+</p>
+
 ## Installation
 
 ```
 pip install -U vs_grain
 ```  
-For older vapoursynth versions below R74, follow the manual installation steps [here](https://github.com/pifroggi/vs_grain/wiki/Manual-Installation).
+
+> [!TIP]
+> For older vapoursynth versions below R74, follow the manual installation steps [here](https://github.com/pifroggi/vs_grain/wiki/Manual-Installation).
 
 <br />
 
