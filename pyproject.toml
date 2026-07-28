@@ -5,7 +5,7 @@ build-backend = "hatchling.build"
 [project]
 name = "vs_grain"
 version = "2.1.0"
-description = "Vapoursynth functions to generate realistic film grain (via fgrain) and for overlaying external grain clips."
+description = "Generate realistic film grain or overlay grain clips in VapourSynth."
 readme = "README.md"
 requires-python = ">=3.12"
 authors = [{ name = "pifroggi" }]
