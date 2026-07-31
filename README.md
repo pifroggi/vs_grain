@@ -13,7 +13,8 @@ pip install -U vs_grain
 ```  
 
 > [!TIP]
-> For older vapoursynth versions below R74, follow the manual installation steps [here](https://github.com/pifroggi/vs_grain/wiki/Manual-Installation).
+> For VapourSynth R73 and older, follow the [manual installation steps](https://github.com/pifroggi/vs_grain/wiki/Manual-Installation).
+
 
 <br />
 
