@@ -35,3 +35,4 @@ dependencies = [
 Homepage = "https://github.com/pifroggi/vs_grain"
 Repository = "https://github.com/pifroggi/vs_grain"
 Issues = "https://github.com/pifroggi/vs_grain/issues"
+Changelog = "https://github.com/pifroggi/vs_grain/releases"
